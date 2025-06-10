@@ -20,7 +20,7 @@ class OpenAIController extends Controller
         $porsi = $request->input('porsi');
 
         // Rangkai prompt buat OpenAI
-        $messageContent = "Buatkan 5 resep masakan berdasarkan data berikut tanpa kalimat pembuka atau penutup. Jangan pernah menggunakan bahan yang beracun, ilegal, mengandung racun alami, atau yang secara medis dilarang dikonsumsi manusia. Jika pengguna memasukkan bahan seperti itu, abaikan bahan tersebut dan jangan masukkan ke resep.\n";
+        $messageContent = "Buatkan 5 resep masakan berdasarkan data berikut tanpa kalimat pembuka atau penutup. Jangan pernah menggunakan bahan yang beracun, ilegal, mengandung racun alami, atau yang secara medis dilarang dikonsumsi manusia. Jika pengguna memasukkan bahan seperti itu, abaikan bahan tersebut dan jangan masukkan ke resep. Setiap resep wajib menyertakan bahan yang akan digunakan termasuk bumbu\n";
         $messageContent .= "Bahan yang dimiliki: $bahan\n";
         $messageContent .= "Bahan yang tidak disukai: $bahanNon\n";
         $messageContent .= "Alat yang dimiliki: $alat\n";
