@@ -93,7 +93,7 @@
                 <input type="text" name="bahan" class="form-control" placeholder="Bahan yang dimiliki">
             </div>
             <div class="mb-3">
-                <input type="text" name="bahan_non" class="form-control" placeholder="Bahan yang tidak disukai">
+                <input type="text" name="bahan_non" class="form-control" placeholder="Hal yang tidak disukai atau dihindari">
             </div>
             <div class="mb-3">
                 <input type="text" name="alat" class="form-control" placeholder="Alat yang dimiliki">
