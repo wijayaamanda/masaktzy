@@ -101,7 +101,7 @@
                 <input type="text" name="alat_non" class="form-control" placeholder="Alat yang tidak dimiliki">
             </div>
             <div class="mb-3">
-                <input type="text" name="jenis_masakan" class="form-control" placeholder="Jenis Masakan">
+                <input type="text" name="jenis_masakan" class="form-control" placeholder="Jenis Masakan (Dessert / Camilan / Main Course / Lauk / dll)">
             </div>
             <div class="mb-3">
                 <input type="text" name="gaya_masakan" class="form-control" placeholder="Gaya masakan (Indonesia / Western / Chinese / dll)">
