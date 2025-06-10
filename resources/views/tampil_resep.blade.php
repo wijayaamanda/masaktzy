@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Resep Masakan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Caveat&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             background-color: #FFF8F0;
@@ -14,7 +14,7 @@
         }
 
         header h2 {
-            font-family: 'Ubuntu', cursive;
+            font-family: 'Montserrat', sans-serif;
             color: #2C2C2C;
             font-size: 3rem;
             font-weight: bold;
