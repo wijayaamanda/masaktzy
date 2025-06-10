@@ -48,15 +48,15 @@ class OpenAIController extends Controller
         if (isset($data['choices'][0]['message']['content'])) {
             $fullRecipe = $data['choices'][0]['message']['content'];
 
-            // Pecah resep berdasarkan "Resep X:"
-            $recipes = preg_split('/\n?Resep\s*\d+:/i', $fullRecipe, -1, PREG_SPLIT_NO_EMPTY);
+            $recipes = [];
 
-            // Bersihkan spasi kosong
-            $recipes = array_map('trim', $recipes);
+            preg_match_all('/Resep\s*\d+:\s*(.+?)\n(.*?)(?=Resep\s*\d+:|\z)/is', $fullRecipe, $matches, PREG_SET_ORDER);
 
-            // Tambah kembali label Resep 1:, Resep 2: dst agar jelas
-            foreach ($recipes as $key => &$rec) {
-                $rec = "Resep " . ($key + 1) . ":\n" . $rec;
+            foreach ($matches as $match) {
+                $recipes[] = [
+                    'judul' => trim($match[1]),
+                    'isi'   => trim($match[2])
+                ];
             }
         } else {
             $recipes = ['Maaf, terjadi kesalahan dalam membuat resep.'];

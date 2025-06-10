@@ -84,18 +84,12 @@
     <main class="container mb-5">
         @if(isset($recipes) && count($recipes) > 0)
             @foreach ($recipes as $recipe)
-                @php
-                    $parts = explode("\n", $recipe, 2);
-                    $judul = $parts[0] ?? 'Judul Resep';
-                    $isi = $parts[1] ?? '';
-                @endphp
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <h3>{{ $judul }}</h3>
-                        <pre>{{ $isi }}</pre>
+                @foreach ($recipes as $resep)
+                    <div class="mb-4">
+                        <h4>{{ $resep['judul'] }}</h4>
+                        <pre style="white-space: pre-wrap;">{{ $resep['isi'] }}</pre>
                     </div>
-                </div>
-            @endforeach
+                @endforeach
         @else
             <p class="text-center fs-4">Maaf, resep tidak tersedia.</p>
         @endif
