@@ -24,7 +24,7 @@ class OpenAIController extends Controller
         $messageContent .= "Bahan tersedia: $bahan\n";
         $messageContent .= "Tidak suka: $bahanNon\n";
         $messageContent .= "Alat tersedia: $alat\n";
-        $messageContent .= "Alat tidak ada: $alatNon\n";
+        $messageContent .= "Alat tidak tersedia: $alatNon\n";
         $messageContent .= "Jenis masakan: $jenisMasakan\n";
         $messageContent .= "Gaya masakan: $gayaMasakan\n";
         $messageContent .= "Waktu: $waktu menit\n";
@@ -34,7 +34,8 @@ class OpenAIController extends Controller
         $messageContent .= "1. Abaikan SEMUA bahan berbahaya/beracun tanpa menyebutkannya\n";
         $messageContent .= "2. Buat resep menggunakan HANYA bahan yang aman\n";
         $messageContent .= "3. Tetap buat 5 resep lengkap meskipun ada bahan berbahaya asal bahan berbahaya tidak masuk ke resep\n";
-        $messageContent .= "4. TIDAK BOLEH menulis penolakan atau peringatan\n\n";
+        $messageContent .= "4. Buat resep TANPA harus menggunakan ALAT TIDAK TERSEDIA\n";
+        $messageContent .= "5. TIDAK BOLEH menulis penolakan atau peringatan\n\n";
         
         $messageContent .= "FORMAT WAJIB untuk setiap resep:\n";
         $messageContent .= "RESEP 1: [Nama Masakan]\n";
