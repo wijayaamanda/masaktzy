@@ -6,6 +6,7 @@
     <title>Resep Masakan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
             background-color: #FFF8F0;
@@ -21,7 +22,7 @@
         }
 
         header h4 {
-            font-family: 'Ubuntu', cursive;
+            font-family: 'Poppins', sans-serif;
             color: #FF7F50;
             font-size: 2rem;
             margin-top: -10px;
@@ -31,13 +32,46 @@
             background-color: #fff;
             border-radius: 12px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border: none;
         }
 
         .card-body {
-            padding: 20px;
-            font-size: 1.1rem;
-            white-space: pre-wrap;
-            line-height: 1.6;
+            padding: 30px;
+        }
+
+        .recipe-title {
+            color: #2C2C2C;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #FF7F50;
+        }
+
+        .recipe-content {
+            font-size: 1rem;
+            line-height: 1.7;
+            white-space: pre-line;
+        }
+
+        .recipe-section {
+            margin-bottom: 20px;
+        }
+
+        .recipe-section h5 {
+            color: #FF7F50;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .ingredients-list, .steps-list {
+            padding-left: 0;
+        }
+
+        .ingredients-list li, .steps-list li {
+            margin-bottom: 5px;
+            padding-left: 0;
         }
 
         footer {
@@ -61,12 +95,22 @@
             text-decoration: none;
             display: inline-block;
             margin-top: 20px;
+            transition: all 0.3s ease;
         }
 
         .btn-back:hover {
             background-color: #ff5e2d;
             text-decoration: none;
             color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #f5c6cb;
         }
 
         * {
@@ -83,21 +127,53 @@
 
     <main class="container mb-5">
         @if(isset($recipes) && count($recipes) > 0)
-            @foreach ($recipes as $recipe)
+            @foreach ($recipes as $index => $recipe)
                 @php
-                    $parts = explode("\n", $recipe, 2);
-                    $judul = $parts[0] ?? 'Judul Resep';
-                    $isi = $parts[1] ?? '';
+                    // Handle different parsing scenarios
+                    if (str_contains($recipe, '=== RESEP')) {
+                        // New format with === RESEP X ===
+                        $parts = preg_split('/===\s*RESEP\s*\d+:\s*/', $recipe, 2);
+                        $judul = 'Resep ' . ($index + 1);
+                        $content = end($parts);
+                        
+                        // Extract title if it exists after the marker
+                        if (preg_match('/^([^=\n]+)\s*===/', $content, $matches)) {
+                            $judul = 'Resep ' . ($index + 1) . ': ' . trim($matches[1]);
+                            $content = preg_replace('/^[^=\n]+\s*===\s*/', '', $content);
+                        }
+                    } else {
+                        // Fallback for other formats
+                        $lines = explode("\n", $recipe);
+                        $judul = trim($lines[0]) ?: 'Resep ' . ($index + 1);
+                        $content = implode("\n", array_slice($lines, 1));
+                    }
+                    
+                    $content = trim($content);
                 @endphp
+                
                 <div class="card mb-4">
                     <div class="card-body">
-                        <h3>{{ $judul }}</h3>
-                        <pre>{{ $isi }}</pre>
+                        <h3 class="recipe-title">{{ $judul }}</h3>
+                        
+                        @if(str_contains($content, 'Error:'))
+                            <div class="error-message">
+                                {{ $content }}
+                            </div>
+                        @else
+                            <div class="recipe-content">{{ $content }}</div>
+                        @endif
                     </div>
                 </div>
             @endforeach
         @else
-            <p class="text-center fs-4">Maaf, resep tidak tersedia.</p>
+            <div class="text-center">
+                <div class="card">
+                    <div class="card-body">
+                        <p class="fs-4 mb-0">Maaf, resep tidak tersedia saat ini.</p>
+                        <p class="text-muted">Silakan coba lagi atau periksa input Anda.</p>
+                    </div>
+                </div>
+            </div>
         @endif
 
         <div class="text-center">

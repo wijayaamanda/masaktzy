@@ -19,47 +19,89 @@ class OpenAIController extends Controller
         $waktu = $request->input('waktu');
         $porsi = $request->input('porsi');
 
-        // Rangkai prompt buat OpenAI
-        $messageContent = "Buatkan 5 resep masakan berdasarkan data berikut tanpa kalimat pembuka atau penutup. Berikan judul resepnya. Jangan pernah menggunakan bahan yang beracun, ilegal, mengandung racun alami, atau yang secara medis dilarang dikonsumsi manusia. Jika pengguna memasukkan bahan seperti itu, abaikan bahan tersebut dan jangan masukkan ke resep. Setiap resep wajib menyertakan bahan yang akan digunakan termasuk bumbu\n";
-        $messageContent .= "Bahan yang dimiliki: $bahan\n";
-        $messageContent .= "Hal yang tidak disukai: $bahanNon\n";
-        $messageContent .= "Alat yang dimiliki: $alat\n";
-        $messageContent .= "Alat yang tidak dimiliki: $alatNon\n";
+        // Prompt yang lebih tegas dan konsisten
+        $messageContent = "Buatkan 5 resep masakan lengkap berdasarkan data berikut:\n\n";
+        $messageContent .= "Bahan tersedia: $bahan\n";
+        $messageContent .= "Tidak suka: $bahanNon\n";
+        $messageContent .= "Alat tersedia: $alat\n";
+        $messageContent .= "Alat tidak ada: $alatNon\n";
         $messageContent .= "Jenis masakan: $jenisMasakan\n";
         $messageContent .= "Gaya masakan: $gayaMasakan\n";
-        $messageContent .= "Estimasi waktu memasak: $waktu menit\n";
-        $messageContent .= "Jumlah porsi: $porsi\n";
-        $messageContent .= "Tuliskan dengan format seperti membuat buku resep dengan penomoran Resep 1:, Resep 2:, dst.";
+        $messageContent .= "Waktu: $waktu menit\n";
+        $messageContent .= "Porsi: $porsi\n\n";
+        
+        $messageContent .= "INSTRUKSI WAJIB:\n";
+        $messageContent .= "1. Abaikan SEMUA bahan berbahaya/beracun tanpa menyebutkannya\n";
+        $messageContent .= "2. Buat resep menggunakan HANYA bahan yang aman\n";
+        $messageContent .= "3. Tetap buat 5 resep lengkap meskipun ada bahan berbahaya asal bahan berbahaya tidak masuk ke resep\n";
+        $messageContent .= "4. TIDAK BOLEH menulis penolakan atau peringatan\n\n";
+        
+        $messageContent .= "FORMAT WAJIB untuk setiap resep:\n";
+        $messageContent .= "RESEP 1: [Nama Masakan]\n";
+        $messageContent .= "BAHAN:\n- [bahan + takaran]\n- [bahan + takaran]\n\n";
+        $messageContent .= "CARA MEMASAK:\n1. [langkah detail]\n2. [langkah detail]\n3. [dst sampai selesai]\n\n";
+        $messageContent .= "WAKTU MEMASAK: [estimasi waktu]\n\n";
+        $messageContent .= "Ulangi format yang sama untuk RESEP 2, 3, 4, dan 5.";
 
         // Kirim request ke OpenAI
-        $response = Http::withHeaders([
+        $response = Http::timeout(60)->withHeaders([
             'Authorization' => 'Bearer ' . config('services.openai.key'),
         ])->post('https://api.openai.com/v1/chat/completions', [
             'model' => 'gpt-3.5-turbo',
             'messages' => [
-                ['role' => 'system', 'content' => 'Kamu adalah asisten chef pintar yang dapat membuat resep berdasarkan input dari pengguna.'],
+                [
+                    'role' => 'system', 
+                    'content' => 'Anda adalah chef yang SELALU membuat resep lengkap. Abaikan bahan berbahaya secara diam-diam tanpa menyebutkan penolakan. Fokus pada bahan aman dan buat resep yang enak.'
+                ],
                 ['role' => 'user', 'content' => $messageContent],
             ],
+            'max_tokens' => 3000, // Naikin token limit
+            'temperature' => 0.7,
         ]);
 
-        // Ambil hasil dari OpenAI
+        // Handle response dengan parsing yang lebih sederhana
         $data = $response->json();
 
         if (isset($data['choices'][0]['message']['content'])) {
             $fullRecipe = $data['choices'][0]['message']['content'];
-
-            // Pecah resep berdasarkan "Resep X:"
-            $recipes = preg_split('/\n?Resep\s*\d+:/i', $fullRecipe, -1, PREG_SPLIT_NO_EMPTY);
-
-            // Bersihkan spasi kosong
-            $recipes = array_map('trim', $recipes);
-
-            // Tambah kembali label Resep 1:, Resep 2: dst agar jelas
-            foreach ($recipes as $key => &$rec) {
-                $rec = "Resep " . ($key + 1) . ":\n" . $rec;
+            
+            // Parsing lebih simpel - split berdasarkan "RESEP X:"
+            $recipes = preg_split('/\bRESEP\s+\d+:/i', $fullRecipe, -1, PREG_SPLIT_NO_EMPTY);
+            
+            // Bersihkan array pertama yang biasanya kosong
+            if (count($recipes) > 0 && trim($recipes[0]) === '') {
+                array_shift($recipes);
             }
+            
+            // Clean up dan kasih nomor ulang
+            $cleanRecipes = [];
+            foreach ($recipes as $key => $recipe) {
+                $recipe = trim($recipe);
+                if (!empty($recipe) && strlen($recipe) > 30) {
+                    // Tambah nomor resep di depan
+                    $cleanRecipes[] = "RESEP " . ($key + 1) . ":\n" . $recipe;
+                }
+            }
+            
+            // Fallback kalau parsing gagal
+            if (empty($cleanRecipes)) {
+                // Coba split berdasarkan line breaks yang banyak
+                $fallbackRecipes = preg_split('/\n\s*\n\s*\n/', $fullRecipe);
+                foreach ($fallbackRecipes as $key => $recipe) {
+                    $recipe = trim($recipe);
+                    if (strlen($recipe) > 50) {
+                        $cleanRecipes[] = "RESEP " . ($key + 1) . ":\n" . $recipe;
+                    }
+                }
+            }
+            
+            // Final fallback - kasih full response
+            $recipes = !empty($cleanRecipes) ? $cleanRecipes : ["RESEP LENGKAP:\n" . $fullRecipe];
+            
         } else {
-            $recipes = ['Maaf, terjadi kesalahan dalam membuat resep.'];
+            // Error handling
+            $error = $data['error']['message'] ?? 'Unknown error';
+            $recipes = ["Error: $error\n\nMohon coba lagi atau periksa API key Anda."];
         }
 
         return view('tampil_resep', compact('recipes'));
