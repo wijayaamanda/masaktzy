@@ -36,7 +36,8 @@ class OpenAIController extends Controller
         $messageContent .= "3. Tetap buat 5 resep lengkap meskipun ada bahan berbahaya asal bahan berbahaya tidak masuk ke resep\n";
         $messageContent .= "4. Buat resep TANPA harus menggunakan ALAT TIDAK TERSEDIA\n";
         $messageContent .= "5. Buat resep WAJIB MEMPERHATIKAN HAL YANG TIDAK DISUKA\n";
-        $messageContent .= "6. TIDAK BOLEH menulis penolakan atau peringatan\n\n";
+        $messageContent .= "6. Buat resep WAJIB MEMAKSIMALKAN ALAT TERSEDIA\n";
+        $messageContent .= "7. TIDAK BOLEH menulis penolakan atau peringatan\n\n";
         
         $messageContent .= "FORMAT WAJIB untuk setiap resep:\n";
         $messageContent .= "RESEP 1: [Nama Masakan]\n";
