@@ -129,20 +129,16 @@
         @if(isset($recipes) && count($recipes) > 0)
             @foreach ($recipes as $index => $recipe)
                 @php
-                    // Handle different parsing scenarios
                     if (str_contains($recipe, '=== RESEP')) {
-                        // New format with === RESEP X ===
                         $parts = preg_split('/===\s*RESEP\s*\d+:\s*/', $recipe, 2);
                         $judul = 'Resep ' . ($index + 1);
                         $content = end($parts);
                         
-                        // Extract title if it exists after the marker
                         if (preg_match('/^([^=\n]+)\s*===/', $content, $matches)) {
                             $judul = 'Resep ' . ($index + 1) . ': ' . trim($matches[1]);
                             $content = preg_replace('/^[^=\n]+\s*===\s*/', '', $content);
                         }
                     } else {
-                        // Fallback for other formats
                         $lines = explode("\n", $recipe);
                         $judul = trim($lines[0]) ?: 'Resep ' . ($index + 1);
                         $content = implode("\n", array_slice($lines, 1));

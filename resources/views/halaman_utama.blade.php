@@ -134,7 +134,6 @@
             box-shadow: none;
         }
 
-        /* Loading Animation */
         .loading {
             display: inline-block;
             width: 16px;
@@ -165,7 +164,6 @@
             transition: all 0.3s ease;
         }
 
-        /* Custom Alert Styles */
         .custom-alert {
             position: fixed;
             top: 20px;
@@ -185,7 +183,6 @@
             transform: translateX(0);
         }
 
-        /* Form Animation on Load */
         .form-container {
             animation: fadeInUp 0.6s ease-out;
         }
@@ -222,7 +219,6 @@
             transform: scale(1.02);
         }
 
-        /* Responsive adjustments */
         @media (max-width: 768px) {
             .form-container {
                 margin: 1rem;
@@ -262,10 +258,10 @@
                     <input type="text" name="bahan_non" class="form-control" placeholder="Hal yang tidak disukai atau dihindari">
                 </div>
                 <div class="input-group-animated">
-                    <input type="text" name="alat" class="form-control" placeholder="Alat yang dimiliki" required>
+                    <input type="text" name="alat" id="alatInput" class="form-control" placeholder="Alat yang dimiliki" required>
                 </div>
                 <div class="input-group-animated">
-                    <input type="text" name="alat_non" class="form-control" placeholder="Alat yang tidak dimiliki">
+                    <input type="text" name="alat_non" id="alatNonInput" class="form-control" placeholder="Alat yang tidak dimiliki">
                 </div>
                 <div class="input-group-animated">
                     <input type="text" name="jenis_masakan" class="form-control" placeholder="Jenis Masakan (Dessert / Camilan / Main Course / Lauk / dll)" required>
@@ -274,10 +270,10 @@
                     <input type="text" name="gaya_masakan" class="form-control" placeholder="Gaya masakan (Indonesia / Western / Chinese / dll)" required>
                 </div>
                 <div class="input-group-animated">
-                    <input type="text" name="waktu" class="form-control" placeholder="Estimasi waktu memasak (menit)" required>
+                    <input type="number" name="waktu" class="form-control" placeholder="Estimasi waktu memasak (menit)" min="1" required>
                 </div>
                 <div class="input-group-animated">
-                    <input type="text" name="porsi" class="form-control" placeholder="Jumlah porsi" required>
+                    <input type="number" name="porsi" class="form-control" placeholder="Jumlah porsi" min="1" required>
                 </div>
                 <div class="text-center">
                     <button type="submit" class="btn btn-primary" id="submitBtn">
@@ -320,15 +316,126 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('recipeForm');
-            const inputs = form.querySelectorAll('input[type="text"]');
+            const inputs = form.querySelectorAll('input[type="text"], input[type="number"]');
             const submitBtn = document.getElementById('submitBtn');
             const btnText = submitBtn.querySelector('.btn-text');
+            const alatInput = document.getElementById('alatInput');
+            const alatNonInput = document.getElementById('alatNonInput');
             let isSubmitting = false;
 
-            // Enhanced validation function with visual feedback
+            // mastiin input angka cuma bisa angka doang, dan nolak karakter aneh atau salah ketik kayak huruf, simbol, atau angka plus Shift
+            const numberInputs = form.querySelectorAll('input[type="number"]');
+            numberInputs.forEach(input => {
+                input.addEventListener('keypress', function(e) {
+                    if ([46, 8, 9, 27, 13, 110, 190].indexOf(e.keyCode) !== -1 ||
+                        (e.keyCode === 65 && (e.ctrlKey === true || e.metaKey === true)) ||
+                        (e.keyCode >= 35 && e.keyCode <= 40)) {
+                        return;
+                    }
+                    if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                        e.preventDefault();
+                    }
+                });
+
+                // buat cegah user paste selain nomor
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const paste = (e.clipboardData || window.clipboardData).getData('text');
+                    if (/^\d+$/.test(paste)) {
+                        this.value = paste;
+                        this.dispatchEvent(new Event('input'));
+                    }
+                });
+
+                // ini tu mstiin nilainya positif
+                input.addEventListener('input', function() {
+                    const value = parseInt(this.value);
+                    const min = parseInt(this.getAttribute('min'));
+                    
+                    if (value < min) {
+                        this.value = min;
+                    }
+                });
+            });
+
+            // filter buat input text yang cuma boleh huruf, spasi, dan koma
+            const textOnlyInputs = form.querySelectorAll('input[name="bahan"], input[name="bahan_non"], input[name="alat"], input[name="alat_non"], input[name="jenis_masakan"], input[name="gaya_masakan"]');
+            textOnlyInputs.forEach(input => {
+                input.addEventListener('keypress', function(e) {
+                    // allow control keys (backspace, delete, arrow keys, etc.)
+                    if ([8, 9, 13, 27, 37, 38, 39, 40, 46].indexOf(e.keyCode) !== -1 ||
+                        (e.keyCode === 65 && (e.ctrlKey === true || e.metaKey === true)) ||
+                        (e.keyCode >= 35 && e.keyCode <= 40)) {
+                        return;
+                    }
+
+                    const char = String.fromCharCode(e.keyCode);
+                    // cuma allow huruf (a-z, A-Z), spasi, dan koma
+                    if (!/^[a-zA-Z\s,]$/.test(char)) {
+                        e.preventDefault();
+                    }
+                });
+
+                // filter paste buat cuma allow huruf, spasi, dan koma
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const paste = (e.clipboardData || window.clipboardData).getData('text');
+                    // cuma allow huruf, spasi, dan koma
+                    const filteredPaste = paste.replace(/[^a-zA-Z\s,]/g, '');
+                    this.value = filteredPaste;
+                    this.dispatchEvent(new Event('input'));
+                });
+            });
+
+            // fungsi buat normalisasi text (lowercase, trim, hapus spasi berlebihan)
+            function normalizeText(text) {
+                return text.toLowerCase().trim().replace(/\s+/g, ' ');
+            }
+
+            // fungsi buat cek apakah ada overlap antara alat yang dimiliki dan tidak dimiliki
+            function checkAlatOverlap() {
+                const alatValue = normalizeText(alatInput.value);
+                const alatNonValue = normalizeText(alatNonInput.value);
+                
+                if (alatValue === '' || alatNonValue === '') {
+                    return false; // ga ada overlap kalo salah satu kosong
+                }
+
+                // split by comma dan normalize setiap item
+                const alatItems = alatValue.split(',').map(item => normalizeText(item)).filter(item => item !== '');
+                const alatNonItems = alatNonValue.split(',').map(item => normalizeText(item)).filter(item => item !== '');
+
+                // cek apakah ada item yang sama
+                for (let alatItem of alatItems) {
+                    for (let alatNonItem of alatNonItems) {
+                        if (alatItem === alatNonItem) {
+                            return true; // ada overlap
+                        }
+                    }
+                }
+                return false; // ga ada overlap
+            }
+
             function validateInputs() {
                 let allValid = true;
+                
+                // cek overlap alat dulu
+                const hasOverlap = checkAlatOverlap();
+                if (hasOverlap) {
+                    allValid = false;
+                    alatNonInput.classList.remove('success');
+                    alatNonInput.classList.add('error');
+                } else if (alatNonInput.value.trim() !== '') {
+                    alatNonInput.classList.remove('error');
+                    alatNonInput.classList.add('success');
+                } else {
+                    alatNonInput.classList.remove('error', 'success');
+                }
+
                 inputs.forEach(input => {
+                    // skip alat_non karena udah dicek di atas
+                    if (input.id === 'alatNonInput') return;
+                    
                     const value = input.value.trim();
                     const isRequired = input.hasAttribute('required');
                     
@@ -337,8 +444,23 @@
                         input.classList.remove('success');
                         input.classList.add('error');
                     } else if (value !== '') {
-                        input.classList.remove('error');
-                        input.classList.add('success');
+                        // mastiin input angkanya valid
+                        if (input.type === 'number') {
+                            const numValue = parseInt(value);
+                            const min = parseInt(input.getAttribute('min'));
+                            
+                            if (isNaN(numValue) || numValue < min) {
+                                allValid = false;
+                                input.classList.remove('success');
+                                input.classList.add('error');
+                            } else {
+                                input.classList.remove('error');
+                                input.classList.add('success');
+                            }
+                        } else {
+                            input.classList.remove('error');
+                            input.classList.add('success');
+                        }
                     } else {
                         input.classList.remove('error', 'success');
                     }
@@ -346,16 +468,13 @@
                 return allValid;
             }
 
-            // Set initial button state
             submitBtn.disabled = true;
 
-            // Real-time validation with animations
             inputs.forEach(input => {
                 input.addEventListener('input', () => {
                     const isValid = validateInputs();
                     submitBtn.disabled = !isValid || isSubmitting;
                     
-                    // Add subtle bounce animation when button becomes enabled
                     if (isValid && !isSubmitting && submitBtn.disabled !== false) {
                         submitBtn.style.animation = 'bounce 0.6s ease';
                         setTimeout(() => {
@@ -364,7 +483,6 @@
                     }
                 });
 
-                // Enhanced focus effects
                 input.addEventListener('focus', function() {
                     this.parentElement.style.transform = 'translateY(-2px)';
                 });
@@ -374,22 +492,33 @@
                 });
             });
 
-            // Enhanced form submission
             form.addEventListener('submit', function (e) {
-                if (!validateInputs()) {
+                const hasOverlap = checkAlatOverlap();
+                
+                if (hasOverlap) {
                     e.preventDefault();
                     
-                    // Show shake animation for form
                     form.style.animation = 'shake 0.5s ease-in-out';
                     setTimeout(() => {
                         form.style.animation = '';
                     }, 500);
                     
-                    showCustomAlert('Harap isi semua kolom yang diperlukan!');
+                    showCustomAlert('Alat yang tidak dimiliki tidak boleh sama dengan alat yang dimiliki!');
                     return;
                 }
 
-                // Prevent double submission
+                if (!validateInputs()) {
+                    e.preventDefault();
+                    
+                    form.style.animation = 'shake 0.5s ease-in-out';
+                    setTimeout(() => {
+                        form.style.animation = '';
+                    }, 500);
+                    
+                    showCustomAlert('Harap isi semua kolom yang diperlukan dengan benar!');
+                    return;
+                }
+
                 if (isSubmitting) {
                     e.preventDefault();
                     return;
@@ -398,24 +527,20 @@
                 isSubmitting = true;
                 submitBtn.disabled = true;
                 
-                // Show loading state with animation
                 btnText.innerHTML = '<span class="loading"></span>Mencari resep...';
                 submitBtn.style.background = '#cccccc';
             });
 
-            // Custom alert function
             function showCustomAlert(message) {
                 const alertDiv = document.createElement('div');
                 alertDiv.className = 'custom-alert';
                 alertDiv.textContent = message;
                 document.body.appendChild(alertDiv);
 
-                // Animate in
                 setTimeout(() => {
                     alertDiv.classList.add('show');
                 }, 10);
 
-                // Animate out and remove
                 setTimeout(() => {
                     alertDiv.classList.remove('show');
                     setTimeout(() => {
@@ -426,7 +551,6 @@
                 }, 3000);
             }
 
-            // Add bounce animation keyframes
             const style = document.createElement('style');
             style.textContent = `
                 @keyframes bounce {

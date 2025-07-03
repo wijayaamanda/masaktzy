@@ -35,9 +35,11 @@ class OpenAIController extends Controller
         $messageContent .= "2. Buat resep menggunakan HANYA bahan yang aman\n";
         $messageContent .= "3. Tetap buat 5 resep lengkap meskipun ada bahan berbahaya asal bahan berbahaya tidak masuk ke resep\n";
         $messageContent .= "4. Buat resep TANPA harus menggunakan ALAT TIDAK TERSEDIA\n";
-        $messageContent .= "5. Buat resep WAJIB MEMPERHATIKAN HAL YANG TIDAK DISUKA\n";
+        $messageContent .= "5. Buat resep WAJIB MEMPERHATIKAN HAL YANG TIDAK DISUKA, DILARANG GUNAKAN baham makanan pada hal yang tidak disuka\n";
         $messageContent .= "6. Buat resep WAJIB MEMAKSIMALKAN ALAT TERSEDIA\n";
-        $messageContent .= "7. TIDAK BOLEH menulis penolakan atau peringatan\n\n";
+        $messageContent .= "7. TIDAK BOLEH menulis penolakan atau peringatan\n";
+        $messageContent .= "8. DILARANG membuat resep dengan bahan selain bahan makanan, contoh: aspal, semen, paku, sapu, dll\n";
+        $messageContent .= "9. Perhatikan takaran bahan setiap resep dalam kasus tertentu yang disertakan pada HAL YANG TIDAK DISUKAI\n";
         
         $messageContent .= "FORMAT WAJIB untuk setiap resep:\n";
         $messageContent .= "RESEP 1: [Nama Masakan]\n";
@@ -58,37 +60,30 @@ class OpenAIController extends Controller
                 ],
                 ['role' => 'user', 'content' => $messageContent],
             ],
-            'max_tokens' => 3000, // Naikin token limit
+            'max_tokens' => 3000,
             'temperature' => 0.7,
         ]);
 
-        // Handle response dengan parsing yang lebih sederhana
         $data = $response->json();
 
         if (isset($data['choices'][0]['message']['content'])) {
             $fullRecipe = $data['choices'][0]['message']['content'];
             
-            // Parsing lebih simpel - split berdasarkan "RESEP X:"
             $recipes = preg_split('/\bRESEP\s+\d+:/i', $fullRecipe, -1, PREG_SPLIT_NO_EMPTY);
             
-            // Bersihkan array pertama yang biasanya kosong
             if (count($recipes) > 0 && trim($recipes[0]) === '') {
                 array_shift($recipes);
             }
             
-            // Clean up dan kasih nomor ulang
             $cleanRecipes = [];
             foreach ($recipes as $key => $recipe) {
                 $recipe = trim($recipe);
                 if (!empty($recipe) && strlen($recipe) > 30) {
-                    // Tambah nomor resep di depan
                     $cleanRecipes[] = "RESEP " . ($key + 1) . ":\n" . $recipe;
                 }
             }
             
-            // Fallback kalau parsing gagal
             if (empty($cleanRecipes)) {
-                // Coba split berdasarkan line breaks yang banyak
                 $fallbackRecipes = preg_split('/\n\s*\n\s*\n/', $fullRecipe);
                 foreach ($fallbackRecipes as $key => $recipe) {
                     $recipe = trim($recipe);
@@ -98,11 +93,9 @@ class OpenAIController extends Controller
                 }
             }
             
-            // Final fallback - kasih full response
             $recipes = !empty($cleanRecipes) ? $cleanRecipes : ["RESEP LENGKAP:\n" . $fullRecipe];
             
         } else {
-            // Error handling
             $error = $data['error']['message'] ?? 'Unknown error';
             $recipes = ["Error: $error\n\nMohon coba lagi atau periksa API key Anda."];
         }
