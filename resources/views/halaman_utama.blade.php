@@ -359,10 +359,12 @@
             });
 
             // filter buat input text yang cuma boleh huruf, spasi, dan koma
-            const textOnlyInputs = form.querySelectorAll('input[name="bahan"], input[name="bahan_non"], input[name="alat"], input[name="alat_non"], input[name="jenis_masakan"], input[name="gaya_masakan"]');
+            const textOnlyInputs = form.querySelectorAll(
+                'input[name="bahan"], input[name="bahan_non"], input[name="alat"], input[name="alat_non"], input[name="jenis_masakan"], input[name="gaya_masakan"]'
+            );
             textOnlyInputs.forEach(input => {
                 input.addEventListener('keypress', function(e) {
-                    // allow control keys (backspace, delete, arrow keys, etc.)
+                    // izinin spasi, delete, dll
                     if ([8, 9, 13, 27, 37, 38, 39, 40, 46].indexOf(e.keyCode) !== -1 ||
                         (e.keyCode === 65 && (e.ctrlKey === true || e.metaKey === true)) ||
                         (e.keyCode >= 35 && e.keyCode <= 40)) {
