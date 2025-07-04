@@ -19,6 +19,9 @@ class OpenAIController extends Controller
         $waktu = $request->input('waktu');
         $porsi = $request->input('porsi');
 
+        // Proses bahan yang tidak disukai untuk mendeteksi kata "berlebih"
+        $bahanNonProcessed = $this->processBahanNonDisukai($bahanNon);
+
         // Hitung faktor pengali untuk takaran
         $basePorsi = 4; // Asumsi resep standar untuk 4 porsi
         $multiplier = $porsi / $basePorsi;
@@ -26,7 +29,7 @@ class OpenAIController extends Controller
         // Prompt yang lebih tegas dan konsisten
         $messageContent = "Buatkan 5 resep masakan lengkap berdasarkan data berikut:\n\n";
         $messageContent .= "Bahan tersedia: $bahan\n";
-        $messageContent .= "Tidak suka: $bahanNon\n";
+        $messageContent .= "Tidak suka/Hindari: $bahanNonProcessed\n";
         $messageContent .= "Alat tersedia: $alat\n";
         $messageContent .= "Alat tidak tersedia: $alatNon\n";
         $messageContent .= "Jenis masakan: $jenisMasakan\n";
@@ -39,11 +42,14 @@ class OpenAIController extends Controller
         $messageContent .= "2. Buat resep menggunakan HANYA bahan yang aman\n";
         $messageContent .= "3. Tetap buat 5 resep lengkap meskipun ada bahan berbahaya asal bahan berbahaya tidak masuk ke resep\n";
         $messageContent .= "4. Buat resep TANPA harus menggunakan ALAT TIDAK TERSEDIA\n";
-        $messageContent .= "5. Buat resep WAJIB MEMPERHATIKAN HAL YANG TIDAK DISUKA, DILARANG GUNAKAN baham makanan pada hal yang tidak disuka\n";
+        $messageContent .= "5. Buat resep WAJIB MEMPERHATIKAN HAL YANG TIDAK DISUKA:\n";
+        $messageContent .= "    - Jika ada '[bahan] berlebih' (contoh: minyak berlebih, santan berlebih), gunakan bahan tersebut SEMINIMAL MUNGKIN\n";
+        $messageContent .= "    - Jika ada bahan tanpa kata 'berlebih', JANGAN gunakan bahan tersebut sama sekali\n";
+        $messageContent .= "    - Prioritas: kurangi drastis penggunaan bahan yang disebutkan 'berlebih'\n";
         $messageContent .= "6. Buat resep WAJIB MEMAKSIMALKAN ALAT TERSEDIA\n";
         $messageContent .= "7. TIDAK BOLEH menulis penolakan atau peringatan\n";
         $messageContent .= "8. DILARANG membuat resep dengan bahan selain bahan makanan, contoh: aspal, semen, paku, sapu, dll\n";
-        $messageContent .= "9. Perhatikan takaran bahan setiap resep dalam kasus tertentu yang disertakan pada HAL YANG TIDAK DISUKAI\n";
+        $messageContent .= "9. KHUSUS untuk bahan yang tidak disukai dengan kata 'berlebih': gunakan teknik memasak yang meminimalkan penggunaan bahan tersebut\n";
         
         // Instruksi yang lebih spesifik untuk takaran
         $messageContent .= "10. SANGAT PENTING - TAKARAN BAHAN HARUS SESUAI DENGAN JUMLAH PORSI ($porsi orang):\n";
@@ -62,6 +68,8 @@ class OpenAIController extends Controller
         // System message yang lebih tegas
         $systemMessage = "Anda adalah chef profesional yang SELALU membuat resep dengan takaran yang TEPAT sesuai jumlah porsi. ";
         $systemMessage .= "WAJIB hitung ulang setiap takaran bahan sesuai jumlah porsi yang diminta. ";
+        $systemMessage .= "PENTING: Jika ada bahan yang tidak disukai dengan kata 'berlebih' (contoh: minyak berlebih, santan berlebih), ";
+        $systemMessage .= "gunakan bahan tersebut dalam jumlah SANGAT MINIMAL atau cari alternatif teknik memasak yang tidak memerlukan bahan tersebut banyak. ";
         $systemMessage .= "Jangan gunakan takaran standar. Abaikan bahan berbahaya secara diam-diam tanpa menyebutkan penolakan. ";
         $systemMessage .= "Fokus pada bahan aman dan buat resep yang enak dengan takaran yang proporsional.";
 
@@ -123,5 +131,42 @@ class OpenAIController extends Controller
     public function formInput()
     {
         return view('halaman_utama');
+    }
+
+    private function processBahanNonDisukai($bahanNon)
+    {
+        if (empty($bahanNon)) {
+            return $bahanNon;
+        }
+
+        // Deteksi kata "berlebih" dan berikan instruksi yang lebih spesifik
+        $processed = $bahanNon;
+        
+        // Kata kunci yang menunjukkan "berlebih" atau "terlalu banyak"
+        $berlebihKeywords = ['berlebih', 'terlalu banyak', 'berlebihan', 'kebanyakan', 'terlalu'];
+        
+        foreach ($berlebihKeywords as $keyword) {
+            if (stripos($processed, $keyword) !== false) {
+                // Ganti dengan instruksi yang lebih jelas
+                $processed = str_ireplace($keyword, 'MINIMAL/SEDIKIT', $processed);
+            }
+        }
+
+        // Tambahkan instruksi khusus untuk bahan yang sering berlebih
+        $commonIngredients = [
+            'minyak' => 'gunakan minyak seminimal mungkin (1-2 sdm max) atau gunakan teknik kukus/rebus',
+            'santan' => 'gunakan santan encer atau ganti dengan susu low-fat',
+            'gula' => 'gunakan pemanis alami minimal atau tanpa gula',
+            'garam' => 'gunakan garam secukupnya (1/2 sdt max)',
+            'mentega' => 'gunakan mentega tipis atau ganti dengan cooking spray'
+        ];
+
+        foreach ($commonIngredients as $ingredient => $instruction) {
+            if (stripos($processed, $ingredient) !== false) {
+                $processed .= "\n→ INSTRUKSI KHUSUS: " . $instruction;
+            }
+        }
+
+        return $processed;
     }
 }
