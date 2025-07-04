@@ -313,16 +313,16 @@
                 <div class="input-group-animated">
                     <select name="jenis_masakan" class="form-select" required>
                         <option value="" disabled selected>Pilih jenis masakan</option>
-                        <option value="Main Course">Main Course</option>
-                        <option value="Dessert">Dessert</option>
+                        <option value="Makanan Utama">Makanan Utama</option>
+                        <option value="Makanan Penutup">Makanan Pembuka</option>
                         <option value="Camilan">Camilan</option>
                         <option value="Lauk">Lauk</option>
-                        <option value="Appetizer">Appetizer</option>
-                        <option value="Soup">Soup</option>
+                        <option value="Makanan Pembuka">Makanan Pembuka</option>
+                        <option value="Sup">Sup</option>
                         <option value="Salad">Salad</option>
                         <option value="Minuman">Minuman</option>
-                        <option value="Breakfast">Breakfast</option>
-                        <option value="Side Dish">Side Dish</option>
+                        <option value="Sarapan">Sarapan</option>
+                        <option value="Makanan Pendamping">Makanan Pendamping</option>
                     </select>
                 </div>
                 <div class="input-group-animated">
