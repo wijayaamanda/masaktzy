@@ -46,7 +46,7 @@
             margin-bottom: 1.5rem;
         }
 
-        .form-control {
+        .form-control, .form-select {
             background-color: #ffffff;
             border: 2px solid #FFDAB9;
             border-radius: 12px;
@@ -57,37 +57,87 @@
             position: relative;
         }
 
-        .form-control:focus {
+        .form-control:focus, .form-select:focus {
             border-color: #FF7F50;
             box-shadow: 0 0 0 0.2rem rgba(255,127,80,0.25), 0 4px 15px rgba(255,127,80,0.1);
             transform: translateY(-2px);
             background-color: #ffffff;
         }
 
-        .form-control:hover:not(:focus) {
+        .form-control:hover:not(:focus), {
             border-color: #FFB499;
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
+        .form-select:hover:not(:focus) {
+            border-color: #FFB499;
+            background-color: #FFF4EC;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(255,127,80,0.1);
+        }
+
+        .form-select option:hover {
+            background-color: #FFE5D4; /* coral soft */
+            color: #2C2C2C;
+        }
+        .form-select {
+            background-color: #FFFEF9;
+            border: 2px solid #FFDAB9;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 16px;
+            color: #999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg fill='%23FF7F50' viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M70 90L20 40h100z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 14px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .form-select:focus {
+            border-color: #FF7F50;
+            box-shadow: 0 0 0 0.2rem rgba(255,127,80,0.2), 0 4px 15px rgba(255,127,80,0.1);
+            color: #2C2C2C;
+        }
+
+        .form-select:not([value=""]) {
+            color: #2C2C2C;
+        }
+
+        /* Styling untuk dropdown option list */
+        .form-select option {
+            background-color: #fffef9;
+            color: #2C2C2C;
+            padding: 10px;
+            font-size: 15px;
+            border-radius: 8px;
+        }
+
+        /* Placeholder-style option (yang disabled) */
+        .form-select option[value=""] {
+            color: #bbb;
+            font-style: italic;
+        }
+
         /* Success and Error States */
-        .form-control.success {
+        .form-control.success, .form-select.success {
             border-color: #28a745;
             background: linear-gradient(135deg, #ffffff 0%, #f8fff8 100%);
         }
-
-        .form-control.error {
+        .form-control.error, .form-select.error {
             border-color: #dc3545;
             background: linear-gradient(135deg, #ffffff 0%, #fff8f8 100%);
             animation: shake 0.5s ease-in-out;
         }
-
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
             20%, 40%, 60%, 80% { transform: translateX(3px); }
         }
-
         .btn-primary {
             background-color: #FF7F50;
             border: none;
@@ -99,7 +149,6 @@
             position: relative;
             overflow: hidden;
         }
-
         .btn-primary::before {
             content: '';
             position: absolute;
@@ -110,11 +159,9 @@
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
             transition: left 0.5s;
         }
-
         .btn-primary:hover::before {
             left: 100%;
         }
-
         .btn-primary:hover {
             background-color: #ff5e2d;
             transform: translateY(-2px);
@@ -264,10 +311,38 @@
                     <input type="text" name="alat_non" id="alatNonInput" class="form-control" placeholder="Alat yang tidak dimiliki">
                 </div>
                 <div class="input-group-animated">
-                    <input type="text" name="jenis_masakan" class="form-control" placeholder="Jenis Masakan (Dessert / Camilan / Main Course / Lauk / dll)" required>
+                    <select name="jenis_masakan" class="form-select" required>
+                        <option value="" disabled selected>Pilih jenis masakan</option>
+                        <option value="Main Course">Main Course</option>
+                        <option value="Dessert">Dessert</option>
+                        <option value="Camilan">Camilan</option>
+                        <option value="Lauk">Lauk</option>
+                        <option value="Appetizer">Appetizer</option>
+                        <option value="Soup">Soup</option>
+                        <option value="Salad">Salad</option>
+                        <option value="Minuman">Minuman</option>
+                        <option value="Breakfast">Breakfast</option>
+                        <option value="Side Dish">Side Dish</option>
+                    </select>
                 </div>
                 <div class="input-group-animated">
-                    <input type="text" name="gaya_masakan" class="form-control" placeholder="Gaya masakan (Indonesia / Western / Chinese / dll)" required>
+                    <select name="gaya_masakan" class="form-select" required>
+                        <option value="" disabled selected>Pilih gaya masakan</option>
+                        <option value="Indonesia">Indonesia</option>
+                        <option value="Western">Western</option>
+                        <option value="Chinese">Chinese</option>
+                        <option value="Japanese">Japanese</option>
+                        <option value="Korean">Korean</option>
+                        <option value="Thai">Thai</option>
+                        <option value="Indian">Indian</option>
+                        <option value="Middle Eastern">Middle Eastern</option>
+                        <option value="Mediterranean">Mediterranean</option>
+                        <option value="Italian">Italian</option>
+                        <option value="Mexican">Mexican</option>
+                        <option value="French">French</option>
+                        <option value="Asian Fusion">Asian Fusion</option>
+                        <option value="Continental">Continental</option>
+                    </select>
                 </div>
                 <div class="input-group-animated">
                     <input type="number" name="waktu" class="form-control" placeholder="Estimasi waktu memasak (menit)" min="1" required>
@@ -316,7 +391,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('recipeForm');
-            const inputs = form.querySelectorAll('input[type="text"], input[type="number"]');
+            const inputs = form.querySelectorAll('input[type="text"], input[type="number"], select');
             const submitBtn = document.getElementById('submitBtn');
             const btnText = submitBtn.querySelector('.btn-text');
             const alatInput = document.getElementById('alatInput');
@@ -360,7 +435,7 @@
 
             // filter buat input text yang cuma boleh huruf, spasi, dan koma
             const textOnlyInputs = form.querySelectorAll(
-                'input[name="bahan"], input[name="bahan_non"], input[name="alat"], input[name="alat_non"], input[name="jenis_masakan"], input[name="gaya_masakan"]'
+                'input[name="bahan"], input[name="bahan_non"], input[name="alat"], input[name="alat_non"]'
             );
             textOnlyInputs.forEach(input => {
                 input.addEventListener('keypress', function(e) {
@@ -434,7 +509,19 @@
                     alatNonInput.classList.remove('error', 'success');
                 }
 
-                inputs.forEach(input => {
+                // Update warna dropdown ketika berubah
+            const selectInputs = form.querySelectorAll('select');
+            selectInputs.forEach(select => {
+                select.addEventListener('change', function() {
+                    if (this.value !== '') {
+                        this.style.color = '#333';
+                    } else {
+                        this.style.color = '#666';
+                    }
+                });
+            });
+
+            inputs.forEach(input => {
                     // skip alat_non karena udah dicek di atas
                     if (input.id === 'alatNonInput') return;
                     
@@ -474,6 +561,18 @@
 
             inputs.forEach(input => {
                 input.addEventListener('input', () => {
+                    const isValid = validateInputs();
+                    submitBtn.disabled = !isValid || isSubmitting;
+                    
+                    if (isValid && !isSubmitting && submitBtn.disabled !== false) {
+                        submitBtn.style.animation = 'bounce 0.6s ease';
+                        setTimeout(() => {
+                            submitBtn.style.animation = '';
+                        }, 600);
+                    }
+                });
+
+                input.addEventListener('change', () => {
                     const isValid = validateInputs();
                     submitBtn.disabled = !isValid || isSubmitting;
                     

@@ -19,6 +19,10 @@ class OpenAIController extends Controller
         $waktu = $request->input('waktu');
         $porsi = $request->input('porsi');
 
+        // Hitung faktor pengali untuk takaran
+        $basePorsi = 4; // Asumsi resep standar untuk 4 porsi
+        $multiplier = $porsi / $basePorsi;
+
         // Prompt yang lebih tegas dan konsisten
         $messageContent = "Buatkan 5 resep masakan lengkap berdasarkan data berikut:\n\n";
         $messageContent .= "Bahan tersedia: $bahan\n";
@@ -28,7 +32,7 @@ class OpenAIController extends Controller
         $messageContent .= "Jenis masakan: $jenisMasakan\n";
         $messageContent .= "Gaya masakan: $gayaMasakan\n";
         $messageContent .= "Waktu: $waktu menit\n";
-        $messageContent .= "Porsi: $porsi\n\n";
+        $messageContent .= "Porsi: $porsi orang\n\n";
         
         $messageContent .= "INSTRUKSI WAJIB:\n";
         $messageContent .= "1. Abaikan SEMUA bahan berbahaya/beracun tanpa menyebutkannya\n";
@@ -41,12 +45,25 @@ class OpenAIController extends Controller
         $messageContent .= "8. DILARANG membuat resep dengan bahan selain bahan makanan, contoh: aspal, semen, paku, sapu, dll\n";
         $messageContent .= "9. Perhatikan takaran bahan setiap resep dalam kasus tertentu yang disertakan pada HAL YANG TIDAK DISUKAI\n";
         
+        // Instruksi yang lebih spesifik untuk takaran
+        $messageContent .= "10. SANGAT PENTING - TAKARAN BAHAN HARUS SESUAI DENGAN JUMLAH PORSI ($porsi orang):\n";
+        $messageContent .= "    - Jika resep standar untuk 4 orang, maka untuk $porsi orang harus dikalikan " . round($multiplier, 2) . "\n";
+        $messageContent .= "    - Contoh: resep 4 orang butuh 500g daging, maka untuk $porsi orang butuh " . round(500 * $multiplier) . "g daging\n";
+        $messageContent .= "    - Hitung dengan TEPAT setiap bahan sesuai proporsi porsi yang diminta\n";
+        $messageContent .= "    - Jangan gunakan takaran standar, WAJIB disesuaikan dengan jumlah porsi\n\n";
+        
         $messageContent .= "FORMAT WAJIB untuk setiap resep:\n";
-        $messageContent .= "RESEP 1: [Nama Masakan]\n";
-        $messageContent .= "BAHAN:\n- [bahan + takaran]\n- [bahan + takaran]\n\n";
+        $messageContent .= "RESEP 1: [Nama Masakan] - $porsi Porsi\n";
+        $messageContent .= "BAHAN:\n- [bahan + takaran yang sudah disesuaikan untuk $porsi porsi]\n- [bahan + takaran yang sudah disesuaikan untuk $porsi porsi]\n\n";
         $messageContent .= "CARA MEMASAK:\n1. [langkah detail]\n2. [langkah detail]\n3. [dst sampai selesai]\n\n";
         $messageContent .= "WAKTU MEMASAK: [estimasi waktu]\n\n";
         $messageContent .= "Ulangi format yang sama untuk RESEP 2, 3, 4, dan 5.";
+
+        // System message yang lebih tegas
+        $systemMessage = "Anda adalah chef profesional yang SELALU membuat resep dengan takaran yang TEPAT sesuai jumlah porsi. ";
+        $systemMessage .= "WAJIB hitung ulang setiap takaran bahan sesuai jumlah porsi yang diminta. ";
+        $systemMessage .= "Jangan gunakan takaran standar. Abaikan bahan berbahaya secara diam-diam tanpa menyebutkan penolakan. ";
+        $systemMessage .= "Fokus pada bahan aman dan buat resep yang enak dengan takaran yang proporsional.";
 
         // Kirim request ke OpenAI
         $response = Http::timeout(60)->withHeaders([
@@ -56,7 +73,7 @@ class OpenAIController extends Controller
             'messages' => [
                 [
                     'role' => 'system', 
-                    'content' => 'Anda adalah chef yang SELALU membuat resep lengkap. Abaikan bahan berbahaya secara diam-diam tanpa menyebutkan penolakan. Fokus pada bahan aman dan buat resep yang enak.'
+                    'content' => $systemMessage
                 ],
                 ['role' => 'user', 'content' => $messageContent],
             ],
