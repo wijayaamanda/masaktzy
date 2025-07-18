@@ -154,8 +154,8 @@ class OpenAIController extends Controller
 
         // Tambahkan instruksi khusus untuk bahan yang sering berlebih
         $commonIngredients = [
-            'minyak' => 'gunakan minyak seminimal mungkin (1-2 sdm max) atau gunakan teknik kukus/rebus',
-            'santan' => 'gunakan santan encer atau ganti dengan susu low-fat',
+            'minyak' => 'gunakan minyak seminimal mungkin (1-2 sdm max) atau gunakan teknik kukus/rebus/panggang/bakar',
+            'santan' => 'gunakan santan encer atau ganti dengan susu low-fat, cooking creame, fiber creame',
             'gula' => 'gunakan pemanis alami minimal atau tanpa gula',
             'garam' => 'gunakan garam secukupnya (1/2 sdt max)',
             'mentega' => 'gunakan mentega tipis atau ganti dengan cooking spray'
