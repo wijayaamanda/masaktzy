@@ -18,6 +18,7 @@ class OpenAIController extends Controller
         $gayaMasakan = $request->input('gaya_masakan');
         $waktu = $request->input('waktu');
         $porsi = $request->input('porsi');
+        $sertakanGizi = $request->input('sertakan_gizi') === '1';
 
         // Proses bahan yang tidak disukai untuk mendeteksi kata "berlebih"
         $bahanNonProcessed = $this->processBahanNonDisukai($bahanNon);
@@ -53,10 +54,18 @@ class OpenAIController extends Controller
         
         // Instruksi yang lebih spesifik untuk takaran
         $messageContent .= "10. SANGAT PENTING - TAKARAN BAHAN HARUS SESUAI DENGAN JUMLAH PORSI ($porsi orang):\n";
-        $messageContent .= "    - Jika resep standar untuk 4 orang, maka untuk $porsi orang harus dikalikan " . round($multiplier, 2) . "\n";
+        $messageContent .= "    - Jika resep standar untuk 4 orang, maka untuk $porsi orang harus dikalikan " . round($multiplier, 2) . "\n"; // angka 2 nya itu tu buat pembulatan desimal, biar ga kebanyakan kek 0.333333333 jadi 0.3
         $messageContent .= "    - Contoh: resep 4 orang butuh 500g daging, maka untuk $porsi orang butuh " . round(500 * $multiplier) . "g daging\n";
         $messageContent .= "    - Hitung dengan TEPAT setiap bahan sesuai proporsi porsi yang diminta\n";
         $messageContent .= "    - Jangan gunakan takaran standar, WAJIB disesuaikan dengan jumlah porsi\n\n";
+
+        if ($sertakanGizi) {
+            $messageContent .= "\n11. TAMBAHKAN NILAI GIZI UNTUK SETIAP RESEP:\n";
+            $messageContent .= "    - Kalori (kkal), Karbohidrat (g), Protein (g), Serat (g), Lemak (g), Gula (g)\n";
+            $messageContent .= "    - Sertakan persentase dari kebutuhan harian berdasarkan rata-rata AKG dewasa:\n";
+            $messageContent .= "      * Kalori: 2100kkal\n      * Karbo: 275g\n      * Protein: 60g\n      * Lemak: 67g\n      * Serat: 25g\n      * Gula: max 50g\n";
+            $messageContent .= "    - Format WAJIB: \n      NILAI GIZI:\n      - Kalori: [angka] kkal ([persen]%)\n      - Karbohidrat: ... dst\n";
+        }
         
         $messageContent .= "FORMAT WAJIB untuk setiap resep:\n";
         $messageContent .= "RESEP 1: [Nama Masakan] - $porsi Porsi\n";
@@ -64,7 +73,7 @@ class OpenAIController extends Controller
         $messageContent .= "CARA MEMASAK:\n1. [langkah detail]\n2. [langkah detail]\n3. [dst sampai selesai]\n\n";
         $messageContent .= "WAKTU MEMASAK: [estimasi waktu]\n\n";
         $messageContent .= "Ulangi format yang sama untuk RESEP 2, 3, 4, dan 5.";
-
+        
         // roleplay
         $systemMessage = "Anda adalah chef profesional yang SELALU membuat resep dengan takaran yang TEPAT sesuai jumlah porsi. ";
         $systemMessage .= "WAJIB hitung ulang setiap takaran bahan sesuai jumlah porsi yang diminta. ";
@@ -130,7 +139,7 @@ class OpenAIController extends Controller
 
     public function formInput()
     {
-        return view('halaman_utama');
+        return view('halaman_utama', );
     }
 
     private function processBahanNonDisukai($bahanNon)

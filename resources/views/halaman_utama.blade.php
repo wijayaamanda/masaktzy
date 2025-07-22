@@ -123,6 +123,97 @@
             font-style: italic;
         }
 
+        /* Custom Checkbox Styling */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-container:hover {
+            transform: translateY(-1px);
+        }
+
+        .custom-checkbox {
+            position: relative;
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+        }
+
+        .custom-checkbox input[type="checkbox"] {
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            position: absolute;
+            z-index: 2;
+        }
+
+        .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 20px;
+            width: 20px;
+            background-color: #ffffff;
+            border: 2px solid #FFDAB9;
+            border-radius: 6px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .custom-checkbox:hover .checkmark {
+            border-color: #FFB499;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(255,127,80,0.1);
+        }
+
+        .custom-checkbox input:checked ~ .checkmark {
+            background-color: #FF7F50;
+            border-color: #FF7F50;
+            box-shadow: 0 0 0 0.2rem rgba(255,127,80,0.25);
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 6px;
+            top: 2px;
+            width: 6px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .custom-checkbox input:checked ~ .checkmark:after {
+            display: block;
+            animation: checkmark 0.3s ease-in-out;
+        }
+
+        @keyframes checkmark {
+            0% {
+                transform: rotate(45deg) scale(0);
+            }
+            50% {
+                transform: rotate(45deg) scale(1.2);
+            }
+            100% {
+                transform: rotate(45deg) scale(1);
+            }
+        }
+
+        .checkbox-label {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+            user-select: none;
+        }
+
         /* Success and Error States */
         .form-control.success, .form-select.success {
             border-color: #28a745;
@@ -350,6 +441,14 @@
                 <div class="input-group-animated">
                     <input type="number" name="porsi" class="form-control" placeholder="Jumlah porsi" min="1" required>
                 </div>
+                <!-- Checkbox buat nilai gizi pake yang centang yak -->
+                <div class="checkbox-container">
+                    <label class="custom-checkbox">
+                        <input type="checkbox" name="sertakan_gizi" value="1">
+                        <span class="checkmark"></span>
+                    </label>
+                    <span class="checkbox-label">Sertakan nilai gizi</span>
+                </div>
                 <div class="text-center">
                     <button type="submit" class="btn btn-primary" id="submitBtn">
                         <span class="btn-text">Cari rekomendasi resep</span>
@@ -559,6 +658,8 @@
 
             submitBtn.disabled = true;
 
+            // ini tu dipake buat nanganin input, jadi tiap user ketik atau ubah inputan bakal di cek ama kode ini
+            // dia juga bakalan cek tombol submit uda bole aktif belom, kalo blom bakalan ada animasi bounce
             inputs.forEach(input => {
                 input.addEventListener('input', () => {
                     const isValid = validateInputs();
@@ -572,6 +673,7 @@
                     }
                 });
 
+                //ini dipake buat yang dropdown itu, dia ubah nilai sblmnya ke nilai inputan
                 input.addEventListener('change', () => {
                     const isValid = validateInputs();
                     submitBtn.disabled = !isValid || isSubmitting;
