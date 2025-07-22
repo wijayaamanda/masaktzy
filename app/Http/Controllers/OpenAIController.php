@@ -58,14 +58,6 @@ class OpenAIController extends Controller
         $messageContent .= "    - Contoh: resep 4 orang butuh 500g daging, maka untuk $porsi orang butuh " . round(500 * $multiplier) . "g daging\n";
         $messageContent .= "    - Hitung dengan TEPAT setiap bahan sesuai proporsi porsi yang diminta\n";
         $messageContent .= "    - Jangan gunakan takaran standar, WAJIB disesuaikan dengan jumlah porsi\n\n";
-
-        if ($sertakanGizi) {
-            $messageContent .= "\n11. TAMBAHKAN NILAI GIZI UNTUK SETIAP RESEP:\n";
-            $messageContent .= "    - Kalori (kkal), Karbohidrat (g), Protein (g), Serat (g), Lemak (g), Gula (g)\n";
-            $messageContent .= "    - Sertakan persentase dari kebutuhan harian berdasarkan rata-rata AKG dewasa:\n";
-            $messageContent .= "      * Kalori: 2100kkal\n      * Karbo: 275g\n      * Protein: 60g\n      * Lemak: 67g\n      * Serat: 25g\n      * Gula: max 50g\n";
-            $messageContent .= "    - Format WAJIB: \n      NILAI GIZI:\n      - Kalori: [angka] kkal ([persen]%)\n      - Karbohidrat: ... dst\n";
-        }
         
         $messageContent .= "FORMAT WAJIB untuk setiap resep:\n";
         $messageContent .= "RESEP 1: [Nama Masakan] - $porsi Porsi\n";
@@ -73,6 +65,23 @@ class OpenAIController extends Controller
         $messageContent .= "CARA MEMASAK:\n1. [langkah detail]\n2. [langkah detail]\n3. [dst sampai selesai]\n\n";
         $messageContent .= "WAKTU MEMASAK: [estimasi waktu]\n\n";
         $messageContent .= "Ulangi format yang sama untuk RESEP 2, 3, 4, dan 5.";
+
+        if ($sertakanGizi) {
+            $messageContent .= "NILAI GIZI (untuk $porsi porsi):\n";
+            $messageContent .= "- Kalori: [angka] kkal ([persen]%)\n";
+            $messageContent .= "- Karbohidrat: [angka] g ([persen]%)\n";
+            $messageContent .= "- Protein: [angka] g ([persen]%)\n";
+            $messageContent .= "- Lemak: [angka] g ([persen]%)\n";
+            $messageContent .= "- Serat: [angka] g ([persen]%)\n";
+            $messageContent .= "- Gula: [angka] g ([persen]%)\n\n";
+            
+            $messageContent .= "11. INSTRUKSI NILAI GIZI (WAJIB JIKA DIMINTA):\n";
+            $messageContent .= "    - HITUNG nilai gizi untuk TOTAL $porsi porsi (bukan per porsi)\n";
+            $messageContent .= "    - TEMPATKAN bagian 'NILAI GIZI:' TEPAT SETELAH 'WAKTU MEMASAK:'\n";
+            $messageContent .= "    - JANGAN taruh nilai gizi di tempat lain!\n";
+            $messageContent .= "    - Persentase berdasarkan AKG dewasa: Kalori 2100kkal, Karbo 275g, Protein 60g, Lemak 67g, Serat 25g, Gula max 50g\n";
+            $messageContent .= "    - Format angka: bulat tanpa desimal (contoh: 450 kkal, bukan 450.5 kkal)\n";
+        } 
         
         // roleplay
         $systemMessage = "Anda adalah chef profesional yang SELALU membuat resep dengan takaran yang TEPAT sesuai jumlah porsi. ";
