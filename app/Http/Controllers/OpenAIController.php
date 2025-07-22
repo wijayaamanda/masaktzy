@@ -65,7 +65,7 @@ class OpenAIController extends Controller
         $messageContent .= "WAKTU MEMASAK: [estimasi waktu]\n\n";
         $messageContent .= "Ulangi format yang sama untuk RESEP 2, 3, 4, dan 5.";
 
-        // System message yang lebih tegas
+        // roleplay
         $systemMessage = "Anda adalah chef profesional yang SELALU membuat resep dengan takaran yang TEPAT sesuai jumlah porsi. ";
         $systemMessage .= "WAJIB hitung ulang setiap takaran bahan sesuai jumlah porsi yang diminta. ";
         $systemMessage .= "PENTING: Jika ada bahan yang tidak disukai dengan kata 'berlebih' (contoh: minyak berlebih, santan berlebih), ";
